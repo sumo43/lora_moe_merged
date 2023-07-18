@@ -75,21 +75,25 @@ def merge_peft(model, lora_state, lora_config):
 
     model.merge_and_unload()
 
-    model, _ = pop_peft(model)
-
     return model
 
-def merge_lora_adapters(lora_config, saved_lora_adapters):
-    gc.collect()
-    torch.cuda.empty_cache()
-    model = LlamaForCausalLM.from_pretrained(model_id, torch_dtype=torch.float16, device_map='auto', load_in_8bit=False)
-
+def merge_lora_adapters(model, lora_config, saved_lora_adapters):
     for adapter in saved_lora_adapters:
         for k, v in adapter.items():
             adapter[k] = v.cuda()
-        model = merge_peft(model, adapter, lora_config)
+        model = merge_peft(model, adapter, lora_config).base_model.model
     return model
 
 if __name__ == '__main__':
+
+    saved_lora_adapters = []
+    model = LlamaForCausalLM.from_pretrained(model_id, torch_dtype=torch.float16, device_map='auto', load_in_8bit=False)
+    
     for i in range(8):
-        model = LlamaForCausalLM.from_pretrained(model_id, torch_dtype=torch.float16, device_map='auto', load_in_8bit=False)
+        with open(f'run_{i}.pickle', 'r') as handle:   
+            adapter = pickle.load(handle)
+            saved_lora_adapters.append(adapter)
+
+    model = merge_lora_adapters(model, lora_config, saved_lora_adapters)
+
+    # then push model to hub, etc.
