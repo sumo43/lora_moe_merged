@@ -49,7 +49,6 @@ model_id = "elinas/llama-7b-hf-transformers-4.29"
 dataset_id = "Fredithefish/ShareGPT-unfiltered-alpaca-lora-format"
 ds = load_dataset(dataset_id, split="train")
 
-
 prompter = Prompter('alpaca')
 cutoff_len=256
 train_on_inputs=True
@@ -162,19 +161,17 @@ else:
 # train n lora adapters on cluster ds
 
 if __name__ == "__main__":
-    base_model = "elinas/llama-7b-hf-transformers-4.29"
 
-
-    from pynvml import *
-    nvmlInit()
-    h = nvmlDeviceGetHandleByIndex(0)
-    info = nvmlDeviceGetMemoryInfo(h)
-    print(f'total    : {info.total}')
-    print(f'free     : {info.free}')
-    print(f'used     : {info.used}')
+    #from pynvml import *
+    #nvmlInit()
+    #h = nvmlDeviceGetHandleByIndex(0)
+    #info = nvmlDeviceGetMemoryInfo(h)
+    #print(f'total    : {info.total}')
+    #print(f'free     : {info.free}')
+    #print(f'used     : {info.used}')
 
     outs = []
-    for i in range(7, 8):
+    for i in range(0, 8):
         out = subprocess.check_output(
             ['python3', 'lora_worker.py', '--dataset_dir', 'cluster_ds', '--cluster_idx', str(i)]
         )
